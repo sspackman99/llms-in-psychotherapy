@@ -7,12 +7,10 @@ import torch
 from itertools import islice
 import transformers
 
-
-with open("/yunity/sps58/huggingface_token.txt", "r") as file:
-    ACCESS_TOKEN = file.read().strip()
-
+# Model path for the Llama-3-70B-Instruct model
 model_path = "Llama-3-70B-Instruct"
 
+# Initialize the HuggingFace transformers pipeline for text generation
 pipeline = transformers.pipeline(
     "text-generation",
     model=model_path,
@@ -22,6 +20,9 @@ pipeline = transformers.pipeline(
 
 
 def batch_iterator(iterator, batch_size):
+    """
+    Yield batches of data from an iterator.
+    """
     iterator = iter(iterator)
     while True:
         batch = tuple(islice(iterator, batch_size))
@@ -31,11 +32,17 @@ def batch_iterator(iterator, batch_size):
 
 
 def read_system_prompt(file_path):
+    """
+    Read the system prompt from a file.
+    """
     with open(file_path, "r") as file:
         return file.read()
 
 
 def read_completed_ids(output_csv_path):
+    """
+    Read completed AppointIDs from the output CSV to avoid reprocessing.
+    """
     if os.path.exists(output_csv_path) and os.path.getsize(output_csv_path) > 0:
         df = pd.read_csv(output_csv_path)
         return set(df["AppointID"])
@@ -44,7 +51,10 @@ def read_completed_ids(output_csv_path):
 
 
 def parse_result(result):
-    # Remove control characters that are not allowed in JSON
+    """
+    Extract and parse the first JSON object found in the result string.
+    Removes control characters and handles JSONDecodeError.
+    """
     result = result.replace("\n", " ").replace("\r", " ")
     match = re.search(r"\{[\s\S]*\}", result)
     if match:
@@ -59,6 +69,9 @@ def parse_result(result):
 
 
 def get_JSON(string):
+    """
+    Extract the first JSON object from a string using stack-based parsing.
+    """
     stack = []
     json_str = ""
     in_json = False
@@ -78,6 +91,9 @@ def get_JSON(string):
 
 
 def new_prompt(row, system_prompt):
+    """
+    Construct a prompt for the model using the system prompt and the narrative text.
+    """
     user_prompt = f"""
             Note Requiring Anonymization:
             
@@ -89,6 +105,9 @@ def new_prompt(row, system_prompt):
 
 
 def generate_prompt(data, num_examples=7):
+    """
+    Generate a system prompt with a specified number of anonymization examples.
+    """
     data["anonymized"] = data["anonymized"].str.replace("'", "")
     data["anonymized"] = data["anonymized"].str.replace('"', "")
     try:
@@ -136,7 +155,10 @@ def main(
     max_gen_len=4960,
     max_batch_size=1,
 ):
-
+    """
+    Main function to anonymize doctors' notes using a language model.
+    Reads input data, generates prompts, runs the model, and writes anonymized output.
+    """
     num_examples = int(num_examples)
 
     output_csv_path = f"outputs/anon_{num_examples}share.csv"
@@ -145,16 +167,11 @@ def main(
         os.makedirs(output_dir)
 
     samples = pd.read_csv(samples_path)
-    data = pd.read_csv(data_path)
-    # input_df = data.iloc[num_examples + 1 : num_examples + 1001, :]
-    # This is randomly sampling 3000 rows from the dataframe
-    # input_df = data.sample(n=3000, random_state=42)
-    input_df = data
-    # print(num_examples)
+    input_df = pd.read_csv(data_path)
     system_prompt = generate_prompt(samples, num_examples)
-    # print(system_prompt)
     completed_ids = read_completed_ids(output_csv_path)
 
+    # Remove already processed rows
     input_df = input_df[~input_df["AppointID"].isin(completed_ids)]
     print(f"Removed {len(completed_ids)} rows from input dataframe")
     print("Remaining rows: ", len(input_df))
@@ -164,23 +181,18 @@ def main(
     for batch in batch_iterator(input_df.iterrows(), max_batch_size):
         batch_prompts = []
         batch_metadata = []
-        batch_gen_lens = []
-        # print("Batch: ", batch)
 
         for index, row in batch:
             full_prompt = new_prompt(row, system_prompt)
-            # print("This is the full prompt: ", full_prompt)
             batch_prompts.append(full_prompt)
-            # length = extract_prompt(full_prompt, "Selftext:", "JSON Output:")[1]
-            # batch_gen_lens.append(length)
             this_metadata = {
                 "row": index,
                 "ID": row["ID"],
                 "AppointID": row["AppointID"],
-                # 'de-anonymized': row['de-anonymized']
             }
             batch_metadata.append(this_metadata)
 
+        # Generate anonymized text using the model
         results = pipeline(
             batch_prompts,
             max_length=max_gen_len,
@@ -191,22 +203,20 @@ def main(
 
         new_rows = []
         for metadata, result in zip(batch_metadata, results):
-            # print("result: ", result)
             gen_text = get_JSON(result[0]["generated_text"])
             parsed_json = parse_result(gen_text)
             if parsed_json is not None:
-                # print("Parsed JSON: ", parsed_json)
                 metadata["gen-anonymized"] = parsed_json["anon_text"]
                 new_rows.append(metadata)
             else:
                 print("couldn't parse this: ", gen_text)
 
+        # Write new anonymized rows to the output CSV
         if new_rows:
             print(f"Writing {len(new_rows)} rows to csv")
             print(f"New ids completed: {[row['AppointID'] for row in new_rows]}")
             new_df = pd.DataFrame(new_rows)
             print("New df: ", new_df)
-            # print("Does output csv exist? ", os.path.exists(output_csv_path))
             if os.path.exists(output_csv_path):
                 new_df.to_csv(output_csv_path, mode="a", header=False, index=False)
             else:

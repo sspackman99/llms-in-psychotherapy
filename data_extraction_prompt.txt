@@ -1,0 +1,70 @@
+Use the following examples of doctors notes to extract information about the client and their well-being.
+
+    Make sure to only extract the following information:
+        - past_thoughts_about_death
+        - past_thoughts_about_ways_to_die
+        - past_attempts_to_try_to_die
+        - past_hospitalizations_because_of_SI_or_SA
+        - current_thoughts_about_death
+        - current_thoughts_about_ways_to_die
+        - current_intent_to_try_to_die
+        - client_acquiring_means_to_try_to_kill_themselves
+        - cooccuring_mental_health_symptoms
+        - pornography_use
+        - anger_aggression_irritability
+        - possibility_of_being_fired_expelled
+        - loss_of_major_relationship
+        - death_of_close_relationship_esp_from_suicide
+        - fear_of_punishment
+        - anticipated_loss_of_financial_security
+        - fear_of_becoming_burden_to_others
+        - ?Self_critical_thoughts?
+        - ?Frustration?
+        - ?Conflict_with_close_relationship?
+        - ?Physical_pain?
+        - recency
+        - how_recent_in_the_past_week_were_thoughts_about_death
+        - how_recent_in_the_past_week_were_thoughts_about_ways_to_die
+        - how_recent_in_the_past_week_were_past_attempts_to_try_to_die
+        - how_recent_in_the_past_week_were_past_hospitalizations_of_SI_or_SA
+    The rest of the categories are boolean values that are True if the client has that condition and False if they do not.
+    Also, make sure to return your answer in proper JSON formatting, using only double quotes.
+    
+
+
+    Example 1:
+    
+    xxxx began the session by explaining how bad her weekend was (including a near suicidal event) and that she had ended up calling university police. After that she committed to creating a list of people she can trust and call when she is feeling like she wants to self-harm or attempt suicide. As established in our email correspondence, we scheduled an appointment with xxxx to get a referral to an outside therapist for more regular (weekly) meetings. We ended the session by talking about the stuck patterns she is in with family and that she can't control their behavior, which is frustrating. We agreed to terminate unless the wait for an outside therapist is longer than 2 weeks in which case we will meet one more time.
+    
+    JSON output:
+    {
+        'past_thoughts_about_death': 1, 
+        'past_thoughts_about_ways_to_die': 1, 
+        'past_attempts_to_try_to_die': 0, 
+        'past_hospitalizations_because_of_SI_or_SA': 0, 
+        'current_thoughts_about_death': 0, 
+        'current_thoughts_about_ways_to_die': 0, 
+        'current_intent_to_try_to_die': 0, 
+        'client_acquiring_means_to_try_to_kill_themselves': 0, 
+        'cooccuring_mental_health_symptoms': 0, 
+        'pornography_use': 0, 
+        'anger_aggression_irritability': 0, 
+        'possibility_of_being_fired_expelled': 0, 
+        'loss_of_major_relationship': 0, 
+        'death_of_close_relationship_esp_from_suicide': 0, 
+        'fear_of_punishment': 0, 
+        'anticipated_loss_of_financial_security': 0, 
+        'fear_of_becoming_burden_to_others': 0, 
+        '?Self_critical_thoughts?': 0, 
+        '?Frustration?': 1, 
+        '?Conflict_with_close_relationship?': 1, 
+        '?Physical_pain?': 0, 
+        'recency': 1, 
+        'how_recent_in_the_past_week_were_thoughts_about_death': 'past week', 
+        'how_recent_in_the_past_week_were_thoughts_about_ways_to_die': 'past week', 
+        'how_recent_in_the_past_week_were_past_attempts_to_try_to_die': nan, 
+        'how_recent_in_the_past_week_were_past_hospitalizations_of_SI_or_SA': nan
+    }
+
+    Note Requiring data extraction:
+    

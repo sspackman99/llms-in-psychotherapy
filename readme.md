@@ -2,19 +2,19 @@
 
 This repository contains a collection of Python scripts and Jupyter notebooks I used for my master's project at BYU, focused on analyzing clinical notes to predict suicide ideation (SI) using machine learning techniques and natural language processing.
 
-## Project Overview
-
-Analyzing sensitive data, such as healthcare data, can be challenging due to access restrictions. For tabular data, workarounds can be used, such as excluding certain features, adding random noise, or applying a transformation to the data. Sensitive non-tabular data, such as text data, can be even more difficult to analyze because those classic workarounds are not applicable outside of the tabular setting.
-
-This project generates value by: 1) providing access to sensitive data by processing it in a way that respects the privacy of the subject while still extracting meaningful information, and 2) combining that text data that was previously unavailable with existing quantitative data to improve model performance. In this case, I wanted to predict SI.
-
 ### The Data
 
-I used data from BYU's on-campus counseling center called CAPS. Every time a client visits the center, they fill out a 45-question questionnaire, and the therapist records notes about the session. The questionnaire provides statements and asks on a scale of 0-4 how much the client agrees with them. One of the statements is "I have thoughts of ending my life." For the purposes of this project, any response above 0 was considered indicative of SI. The therapist notes themselves vary widely in length and topic.
+I used data from BYU's on-campus counseling center called CAPS. Every time a client visits the center, they fill out a 45-question questionnaire, and the therapist records notes about the session. The questionnaire provides statements and asks on a scale of 0-4 how much the client agrees with them. One of the statements is "I have thoughts of ending my life." For the purposes of this project, any response above 0 was considered indicative of SI. The therapist notes themselves vary widely in length and topic. However, they are highly sensitive and access is restricted. 
+
+### Data Disclaimer
+
+**IMPORTANT:** Due to the highly sensitive and confidential nature of the clinical data used in this project, no actual patient data is included in this repository. The code is provided for methodological transparency only. Those interested in similar work should obtain proper ethical approvals and establish appropriate data usage agreements with their respective institutions.
+
+This repository contains only the code infrastructure for processing and modeling. To use this code with your own data, you would need to adapt the data loading and preprocessing steps to match your data format while maintaining proper privacy and security protocols.
 
 ### Methods
 
-I chose Llama 3 70B for this project. I preferred an open-source model because I could keep all of the data and analysis on the university's own servers and avoid sending sensitive data elsewhere. I started by making one pass over the text data with Llama focused on anonymizing the text, then made a second pass with the model focused on extracting features from the text that were not already included in the questionnaire.
+To accomplish the goal of using machine learning to predict suicidal ideation I wanted to give my model as much useful data as possible. This meant feeding the model both the quantitative data from the surveys AND somehow train it on the text data (doctors notes). The text data is the trickiest part. I decided to use a large-language model to first anonymize the notes, then extract useful features from them. I chose Llama 3 70B for this project. I preferred an open-source model because I could keep all of the data and analysis on the university's own servers and avoid sending sensitive data elsewhere. I started by making one pass over the text data with Llama focused on anonymizing the text, then made a second pass with the model focused on extracting features from the text that were not already included in the questionnaire.
 
 #### Anonymization
 
@@ -26,7 +26,7 @@ Similar to the process for anonymization, I used few-shot prompting to coax the 
 
 #### Predictive Modeling
 
-I fit a logistic regression model to predict suicidal ideation (as indicated by the OQ survey) using the data. I also tried fitting a LightGBM model and an XGBoost model, but their performances were similar enough that I defaulted to the simplest and easiest to interpret model.
+I fit a logistic regression model to predict suicidal ideation (as indicated by the OQ survey) using the data. I also tried fitting a LightGBM model and an XGBoost model, but their performances were similar enough that I defaulted to the simplest and easiest to interpret model. Additionally, using a logistic regression model with an accessible likelihood allowed me to perform a statistical test to see whether using the text data in addition to the quanititative data provided value. This test is not possible with the other models. While trying logistic regression, I also tried a regularized logistic regression model, but the performance was relatively similar. I defaulted to the simplest model.
 
 ### Results
 
@@ -56,9 +56,9 @@ Using the text data in addition to the quantitative data alone makes a significa
 
 #### `extract_data.py`
 - Extracts structured information from clinical notes using LLM-based extraction.
-- Libraries used: Same as anonymize.py
-- Key functions: Similar structure to anonymize.py but focused on extracting structured data (e.g., suicide risk factors, symptoms) from the notes
-- Output: CSV file containing extracted features from the notes (extract_{num_examples}examples_share.csv)
+- Libraries used: Same as `anonymize.py`
+- Key functions: Similar structure to `anonymize.py` but focused on extracting structured data (e.g., suicide risk factors, symptoms) from the notes
+- Output: CSV file containing extracted features from the notes
 
 #### `run_bertopic.py`
 - Performs topic modeling on the clinical notes using BERTopic.
@@ -67,7 +67,6 @@ Using the text data in addition to the quantitative data alone makes a significa
   - `sklearn`: For feature extraction and vectorization
   - `torch`: For GPU memory management
   - `pandas`: For data handling
-  - `fire`: For command-line interface
 - Key functions:
   - `process_and_plot`: Filters data, applies topic modeling, and generates visualizations
   - `main`: Processes data with different filtering conditions
@@ -88,55 +87,41 @@ Using the text data in addition to the quantitative data alone makes a significa
   - Saves cleaned datasets
 - Output: Various cleaned CSV files including cleaned_share.csv and cleaned_labled_samples.csv
 
-#### `joining_tables.ipynb`
-- Merges different data sources based on appointment IDs.
+#### `model_SI_with_full_OQ.ipynb`
+- The main modeling notebook that builds predictive models for suicide ideation (SI).
 - Key operations:
-  - Joins clinical note data with OQ questionnaire data
-  - Joins extracted features with anonymized text
-  - Saves merged datasets
-- Output:
-  - extract_merged_withOQ.csv
-  - extract_merged_with_full_OQ.csv
-  - extract_merged_withOQ_text.csv
-
-#### `model_SI.ipynb`
-- The main modeling notebook that builds predictive models for suicide ideation.
-- Key operations:
-  - Imports and prepares data
-  - Creates abbreviations for column names
-  - Performs exploratory data analysis (EDA)
-  - Visualizes correlations and distributions
+  - Imports and prepares data from 'extract_merged_with_full_OQ.csv'
+  - Creates abbreviations for column names for better readability
+  - Performs exploratory data analysis (EDA) including correlation visualization
+  - Handles missing values and data preparation for modeling
   - Implements and evaluates multiple machine learning models:
     - XGBoost
     - LightGBM
-  - Cross-validates models with 5-fold validation
-  - Uses SHAP for model explainability
-  - Visualizes feature importance
+    - Regularized logistic regression
+    - Standard logistic regression (without regularization)
+  - Cross-validates models with 5-fold validation to find optimal hyperparameters and thresholds
+  - Uses SHAP for model explainability across all models
+  - Performs likelihood ratio test (LRT) to compare models with and without text features
 - Output:
-  - Model performance metrics (F1 score, recall, confusion matrix)
+  - Model performance metrics (F1 score, recall, precision, AUC-ROC)
+  - Confusion matrices for classification evaluation
   - SHAP visualizations for feature importance
-  - Word count distribution comparisons between SI and non-SI notes
+  - Statistical significance of text features in prediction
 
-#### `model_SI_with_full_OQ.ipynb`
-- Similar to model_SI.ipynb but uses the complete OQ questionnaire data.
+### Text Files
+
+#### `anonymize_prompt.txt`
+- A modified prompt that I use when anonymizing the clinical notes. It has been modified to further enhance privacy. Only one example from the prompt is shown, though in the actual processing of the data I used 8. Names used in this prompt are made up
+
+#### `data_extraction_prompt.txt`
+- A modified prompt that I use when extracting data from the clinical notes. Like `anonymize_prompt.txt`, it has been modified and shortened to further enhance privacy.
 
 ## Data Flow and Relationships
 1. Raw clinical notes → anonymize.py → Anonymized notes
-2. Anonymized notes → data_cleaning.ipynb → Cleaned notes
-3. Cleaned notes → extract_data.py → Structured features
-4. Structured features + OQ data → joining_tables.ipynb → Merged datasets
-5. Merged datasets → model_SI.ipynb → Predictive models and analysis
+3. Anonymized notes → extract_data.py → Structured features
+4. Structured features + OQ data → Merged dataset
+5. Merged dataset → model_SI_with_full_OQ.ipynb → Predictive models and analysis
 6. Anonymized notes → run_bertopic.py → Topic analysis and visualizations
-
-## Key Concepts
-- SI (Suicide Ideation): The primary prediction target, represented by column OQ_8 in the questionnaire data
-- Extraction: Using LLMs to convert unstructured clinical notes to structured data
-- Features: Various indicators extracted from notes, including:
-  - Past thoughts about death (PTAD)
-  - Current thoughts about death (CAD)
-  - Current intent to try to die (CITD)
-  - Various psychological and social factors
-- Model Evaluation: Uses F1 score and recall as primary metrics, with emphasis on recall for the positive class (detecting SI)
 
 ## Usage
 Most scripts can be run with the fire CLI interface. For anonymization simply run
@@ -154,6 +139,5 @@ bash run_extract.sh
 Make sure you use a proper python environment with the correct packages installed.
 
 The bertopic code can be run by just running the script itself, no need to use bash.
-
 
 Notebooks should be run in the sequence: data_cleaning.ipynb → joining_tables.ipynb → model_SI.ipynb

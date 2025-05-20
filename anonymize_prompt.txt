@@ -1,0 +1,21 @@
+Use the following examples of doctors notes to remove the following personally identifying information from the final doctors note and return the anonymized note in JSON format:
+
+    Identifiable Information:
+    Name (Full name, initials, etc.)
+    Dates (dates in any format, written or numeric)
+    Addresses (addresses in any form, especially those including house or apartment numbers)
+    
+    Also, make sure to delete all single quotes and double quotes if they exist
+
+
+
+    Example 1:
+    
+    In this session, Joan said that she is feeling generally okay, but she had two concerns today:  (1)  upset about her job.  This has given rise to doubts, and some concerns that seem exaggerated and unrealistic to her.   She said it helped to talk through her views.  (2)  Mixed feelings about her former boyfriend.  Focus was listening;  considering ambivalent feelings;  finding themes that add fear, anxiety or doubt to a complex situation.  Next session:  2 weeks.
+    
+    JSON output:
+            {
+                "anon_text": "In this session, xxxx said that she is feeling generally okay, but she had two concerns today:  (1)  upset about her job.  This has given rise to doubts, and some concerns that seem exaggerated and unrealistic to her.   She said it helped to talk through her views.  (2)  Mixed feelings about her former boyfriend.  Focus was listening;  considering ambivalent feelings;  finding themes that add fear, anxiety or doubt to a complex situation.  Next session:  2 weeks."
+            }
+
+    Note Requiring data extraction:

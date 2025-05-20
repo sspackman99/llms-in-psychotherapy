@@ -30,7 +30,7 @@ I fit a logistic regression model to predict suicidal ideation (as indicated by 
 
 ### Results
 
-Using the text data in addition to the quantitative data alone makes a significant difference. The model achieves an F1-score of 0.647, a recall of 0.767, and precision of 0.559. Because this concerns identifying suicidal ideation, recall is the most important metric to watch for, as I aim to catch as many possible instances of suicidal ideation as I can. Additionally, the generative model's performance in anonymizing and extracting data from the text was excellent. Anonymizing the text alone replaced the work of 8 students totaling 1,250–2,100 hours, resulting in savings of $140k–$233k.
+Using the text data in addition to the quantitative data alone makes a significant difference. The model achieves an F1-score of 0.63, a recall of 0.88, and precision of 0.49. Because this concerns identifying suicidal ideation, recall is the most important metric to watch for, as I aim to catch as many possible instances of suicidal ideation as I can. Additionally, the generative model's performance in anonymizing and extracting data from the text was excellent. Anonymizing the text alone replaced the work of 8 students totaling 1,250–2,100 hours, resulting in savings of $140k–$233k.
 
 
 ## File Overview
@@ -108,13 +108,17 @@ Using the text data in addition to the quantitative data alone makes a significa
   - SHAP visualizations for feature importance
   - Statistical significance of text features in prediction
 
-### Text Files
+### Other Files
 
 #### `anonymize_prompt.txt`
 - A modified prompt that I use when anonymizing the clinical notes. It has been modified to further enhance privacy. Only one example from the prompt is shown, though in the actual processing of the data I used 8. Names used in this prompt are made up
 
 #### `data_extraction_prompt.txt`
 - A modified prompt that I use when extracting data from the clinical notes. Like `anonymize_prompt.txt`, it has been modified and shortened to further enhance privacy.
+
+#### `LLMs in Psychotherapy.pdf`
+
+- Short slide deck explaining the project at a high level
 
 ## Data Flow and Relationships
 1. Raw clinical notes → anonymize.py → Anonymized notes

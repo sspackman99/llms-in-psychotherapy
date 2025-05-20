@@ -120,6 +120,10 @@ Using the text data in addition to the quantitative data alone makes a significa
 
 - Short slide deck explaining the project at a high level
 
+#### `OQ_BYU.pdf`
+
+- The questionnaire that clients take every time they visit the counseling center
+
 ## Data Flow and Relationships
 1. Raw clinical notes → anonymize.py → Anonymized notes
 3. Anonymized notes → extract_data.py → Structured features

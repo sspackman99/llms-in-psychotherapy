@@ -8,7 +8,7 @@ I used data from BYU's on-campus counseling center called CAPS. Every time a cli
 
 ### Data Disclaimer
 
-**IMPORTANT:** Due to the highly sensitive and confidential nature of the clinical data used in this project, no actual patient data is included in this repository. The code is provided for methodological transparency only. Those interested in similar work should obtain proper ethical approvals and establish appropriate data usage agreements with their respective institutions.
+**IMPORTANT:** Due to the highly sensitive and confidential nature of the clinical data used in this project, no actual patient data is included in this repository. The code is provided for methodological transparency only.
 
 This repository contains only the code infrastructure for processing and modeling. To use this code with your own data, you would need to adapt the data loading and preprocessing steps to match your data format while maintaining proper privacy and security protocols.
 
